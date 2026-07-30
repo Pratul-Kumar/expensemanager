@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Expense } from '@/types';
-import { formatCurrency, formatMonthYear, getMonthRange } from '@/lib/utils';
+import { formatCurrency, formatMonthYear } from '@/lib/utils';
 import { ExpenseItem } from './ExpenseItem';
 import { ExpenseItemSkeleton } from '@/components/ui/Skeleton';
 import { format } from 'date-fns';
@@ -15,6 +15,10 @@ interface MonthlyViewProps {
   onPrevMonth: () => void;
   onNextMonth: () => void;
   onToast: (msg: string, type?: 'success' | 'error') => void;
+  filteredTotal?: number;
+  filteredCount?: number;
+  hasActiveFilters?: boolean;
+  monthTotal?: number;
 }
 
 export function MonthlyView({
@@ -24,32 +28,31 @@ export function MonthlyView({
   onPrevMonth,
   onNextMonth,
   onToast,
+  filteredTotal,
+  filteredCount,
+  hasActiveFilters = false,
+  monthTotal,
 }: MonthlyViewProps) {
-  const { filteredExpenses, total } = useMemo(() => {
-    const { start, end } = getMonthRange(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth()
-    );
-    const filtered = expenses.filter((e) => {
-      if (!e.createdAt) return false;
-      const d = e.createdAt.toDate();
-      return d >= start && d <= end;
-    });
-    const total = filtered.reduce((sum, e) => sum + e.amount, 0);
-    return { filteredExpenses: filtered, total };
-  }, [expenses, currentMonth]);
+  // Expenses received are already pre-filtered by parent component/hook
+  const total = useMemo(() => {
+    if (typeof filteredTotal === 'number') return filteredTotal;
+    return expenses.reduce((sum, e) => sum + e.amount, 0);
+  }, [expenses, filteredTotal]);
 
-  // Group by date string "d MMMM"
+  const count = typeof filteredCount === 'number' ? filteredCount : expenses.length;
+
+  // Group by date string "d MMMM" using expenseDate (fallback to createdAt)
   const groupedByDate = useMemo(() => {
     const groups: Map<string, Expense[]> = new Map();
-    for (const exp of filteredExpenses) {
-      if (!exp.createdAt) continue;
-      const key = format(exp.createdAt.toDate(), 'd MMMM');
+    for (const exp of expenses) {
+      const targetTimestamp = exp.expenseDate || exp.createdAt;
+      if (!targetTimestamp) continue;
+      const key = format(targetTimestamp.toDate(), 'd MMMM');
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(exp);
     }
     return groups;
-  }, [filteredExpenses]);
+  }, [expenses]);
 
   const isCurrentMonth =
     currentMonth.getFullYear() === new Date().getFullYear() &&
@@ -77,11 +80,29 @@ export function MonthlyView({
         </button>
       </div>
 
-      {/* Monthly summary */}
+      {/* Summary card */}
       <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 mb-6 text-center">
-        <p className="text-xs text-indigo-500 font-medium uppercase tracking-wide mb-1">Total Expense</p>
-        <p className="text-3xl font-bold text-indigo-700">{formatCurrency(total)}</p>
-        <p className="text-sm text-indigo-400 mt-1">{filteredExpenses.length} Expenses</p>
+        {hasActiveFilters && typeof monthTotal === 'number' ? (
+          <div className="flex flex-col gap-2">
+            <div>
+              <p className="text-xs text-indigo-400 font-medium uppercase tracking-wide">
+                {formatMonthYear(currentMonth)} Total
+              </p>
+              <p className="text-xl font-semibold text-indigo-900">{formatCurrency(monthTotal)}</p>
+            </div>
+            <div className="pt-2 border-t border-indigo-100/60">
+              <p className="text-xs text-indigo-600 font-bold uppercase tracking-wide">Filtered Result</p>
+              <p className="text-3xl font-bold text-indigo-700">{formatCurrency(total)}</p>
+              <p className="text-sm text-indigo-500 font-medium mt-0.5">{count} expenses</p>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <p className="text-xs text-indigo-500 font-medium uppercase tracking-wide mb-1">Total Expense</p>
+            <p className="text-3xl font-bold text-indigo-700">{formatCurrency(total)}</p>
+            <p className="text-sm text-indigo-400 mt-1">{count} Expenses</p>
+          </div>
+        )}
       </div>
 
       {/* Loading */}
@@ -94,15 +115,17 @@ export function MonthlyView({
       )}
 
       {/* Empty state */}
-      {!loading && filteredExpenses.length === 0 && (
+      {!loading && expenses.length === 0 && (
         <div className="text-center py-16">
           <div className="text-4xl mb-3">💸</div>
-          <p className="text-gray-500 text-sm">No expenses this month</p>
+          <p className="text-gray-500 text-sm">
+            {hasActiveFilters ? 'No expenses match the selected filters' : 'No expenses this month'}
+          </p>
         </div>
       )}
 
       {/* Grouped expenses */}
-      {!loading && filteredExpenses.length > 0 && (
+      {!loading && expenses.length > 0 && (
         <div className="space-y-6">
           {[...groupedByDate.entries()].map(([dateLabel, exps]) => (
             <div key={dateLabel}>

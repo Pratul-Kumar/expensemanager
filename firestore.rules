@@ -45,6 +45,15 @@ service cloud.firestore {
         request.resource.data.reminderDaysBefore is list &&
         request.resource.data.isActive == true;
     }
+    
+    match /budgets/{budgetId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid
+                     && request.resource.data.amount > 0;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid
+                     && request.resource.data.amount > 0;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
 
     // Block all other documents
     match /{document=**} {

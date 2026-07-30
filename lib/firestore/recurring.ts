@@ -26,6 +26,7 @@ export async function createRecurringPayment(
     amount: parseFloat(expenseData.amount),
     note: expenseData.note.trim(),
     expenseDate: Timestamp.fromDate(expenseData.expenseDate),
+    recurringOccurrenceDate: Timestamp.fromDate(expenseData.expenseDate),
     // system timestamps
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -75,12 +76,12 @@ export async function markRecurringPaymentAsPaid(
     const recurring = recurringSnap.data() as RecurringPayment;
     if (!recurring.isActive) throw new Error('Recurring payment is paused');
 
-    // Guard against duplicate payment: check if an expense with the same recurringPaymentId and expenseDate already exists
+    // Guard against duplicate payment: check if an expense with the same recurringPaymentId and recurringOccurrenceDate already exists
     const expenseQuery = query(
       collection(db, 'expenses'),
       where('userId', '==', recurring.userId),
       where('recurringPaymentId', '==', recurringId),
-      where('expenseDate', '==', Timestamp.fromDate(paymentDate))
+      where('recurringOccurrenceDate', '==', recurring.nextDueDate)
     );
     const existing = await getDocs(expenseQuery);
     if (!existing.empty) {
@@ -95,6 +96,7 @@ export async function markRecurringPaymentAsPaid(
       amount: recurring.amount,
       note: recurring.name,
       expenseDate: Timestamp.fromDate(paymentDate),
+      recurringOccurrenceDate: recurring.nextDueDate,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       recurringPaymentId: recurringId,

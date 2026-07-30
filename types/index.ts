@@ -23,10 +23,11 @@ export interface Expense {
   userId: string;
   amount: number;
   note: string;
-  expenseDate: Timestamp; // user selected date
+  expenseDate: Timestamp; // when money was actually paid
   createdAt: Timestamp; // system timestamp
   updatedAt: Timestamp; // system timestamp
-  recurringPaymentId?: string; // optional link to recurring schedule
+  recurringPaymentId?: string; // link to recurring schedule
+  recurringOccurrenceDate?: Timestamp; // which scheduled occurrence was satisfied
 }
 
 export interface ExpenseFormData {
@@ -62,3 +63,44 @@ export interface UserProfile {
 }
 
 export type ReminderStatus = 'upcoming' | 'today' | 'overdue';
+
+// ── Expense Filters ──
+
+export interface ExpenseFilters {
+  search: string;
+  type: 'all' | 'normal' | 'recurring';
+  dateRange: 'this-month' | 'last-month' | 'this-year' | 'custom';
+  customFrom: string; // yyyy-mm-dd or ''
+  customTo: string;   // yyyy-mm-dd or ''
+  minAmount: string;  // '' or numeric string
+  maxAmount: string;  // '' or numeric string
+  sort: 'newest' | 'oldest' | 'highest' | 'lowest';
+}
+
+// ── Monthly Budget ──
+
+export interface Budget {
+  id: string;
+  userId: string;
+  year: number;
+  month: number; // 0-indexed
+  amount: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface BudgetFormData {
+  amount: string;
+}
+
+export type BudgetStatus = 'on-track' | 'approaching' | 'exceeded';
+
+export interface BudgetCalculation {
+  spent: number;              // actual expense total for the month
+  recurringCommitted: number; // unpaid recurring due this month
+  allocated: number;          // spent + recurringCommitted
+  leftBudget: number;         // budget - allocated (can be negative)
+  percentageAllocated: number;// (allocated / budget) * 100
+  status: BudgetStatus;
+  overBudgetAmount: number;   // max(0, allocated - budget)
+}
