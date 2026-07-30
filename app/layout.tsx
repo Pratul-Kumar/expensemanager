@@ -10,13 +10,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'MySpace — Notes, Reminders & Expenses',
+  title: 'Notely',
   description: 'Your personal productivity space for notes, reminders, and daily expense tracking.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'MySpace',
+    title: 'Notely',
   },
   icons: {
     icon: '/icons/icon-192x192.png',

@@ -17,7 +17,9 @@ export function useExpenseFilters(expenses: Expense[], currentMonth: Date) {
   const { monthTotal, monthExpenseCount } = useMemo(() => {
     const { start, end } = getMonthRange(currentMonth.getFullYear(), currentMonth.getMonth());
     const monthExpenses = expenses.filter((e) => {
-      const d = e.expenseDate.toDate();
+      const targetTimestamp = e.expenseDate || e.createdAt;
+      if (!targetTimestamp) return false;
+      const d = targetTimestamp.toDate();
       return d >= start && d <= end;
     });
     return {

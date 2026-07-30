@@ -22,7 +22,7 @@ export function Sidebar() {
         <div className="w-8 h-8 bg-indigo-500 rounded-xl flex items-center justify-center">
           <Layers size={16} className="text-white" strokeWidth={2.5} />
         </div>
-        <span className="font-bold text-gray-900 text-lg tracking-tight">MySpace</span>
+        <span className="font-bold text-gray-900 text-lg tracking-tight">Notely</span>
       </div>
 
       {/* Nav items */}

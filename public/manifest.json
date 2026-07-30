@@ -1,6 +1,6 @@
 {
-  "name": "MySpace",
-  "short_name": "MySpace",
+  "name": "Notely",
+  "short_name": "Notely",
   "description": "Your personal notes, reminders, and expense tracker",
   "start_url": "/",
   "display": "standalone",

@@ -136,7 +136,7 @@ export default function HomePage() {
       {/* Header */}
       <div>
         <p className="text-sm text-gray-400">Hi, {firstName} 👋</p>
-        <h1 className="text-xl font-bold text-gray-900 mt-0.5">MySpace</h1>
+        <h1 className="text-xl font-bold text-gray-900 mt-0.5">Notely</h1>
       </div>
 
       {/* Monthly Budget Card (Compact) */}

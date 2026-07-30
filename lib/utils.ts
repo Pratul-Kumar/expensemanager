@@ -168,7 +168,7 @@ export function getRecurringCommitted(
   let committed = 0;
 
   for (const rp of recurringPayments) {
-    if (!rp.isActive) continue;
+    if (!rp.isActive || !rp.nextDueDate) continue;
 
     const dueDate = rp.nextDueDate.toDate();
     if (dueDate < start || dueDate > end) continue;
@@ -184,8 +184,9 @@ export function getRecurringCommitted(
       }
 
       // Fallback for legacy data without recurringOccurrenceDate:
-      // check if expenseDate is in the same month
-      const expDate = e.expenseDate.toDate();
+      // check if expenseDate or createdAt is in the same month
+      const expDate = (e.expenseDate || e.createdAt)?.toDate();
+      if (!expDate) return false;
       return expDate >= start && expDate <= end;
     });
 
@@ -222,7 +223,7 @@ export function filterExpenses(
   // Search by note
   if (filters.search.trim()) {
     const q = filters.search.trim().toLowerCase();
-    result = result.filter((e) => e.note.toLowerCase().includes(q));
+    result = result.filter((e) => (e.note || '').toLowerCase().includes(q));
   }
 
   // Type filter
@@ -233,7 +234,6 @@ export function filterExpenses(
   }
 
   // Date filter
-  const now = new Date();
   let dateStart: Date | null = null;
   let dateEnd: Date | null = null;
 
@@ -270,10 +270,16 @@ export function filterExpenses(
   }
 
   if (dateStart) {
-    result = result.filter((e) => e.expenseDate.toDate() >= dateStart!);
+    result = result.filter((e) => {
+      const t = e.expenseDate || e.createdAt;
+      return t ? t.toDate() >= dateStart! : false;
+    });
   }
   if (dateEnd) {
-    result = result.filter((e) => e.expenseDate.toDate() <= dateEnd!);
+    result = result.filter((e) => {
+      const t = e.expenseDate || e.createdAt;
+      return t ? t.toDate() <= dateEnd! : false;
+    });
   }
 
   // Amount filter
@@ -289,10 +295,18 @@ export function filterExpenses(
   // Sort
   switch (filters.sort) {
     case 'newest':
-      result.sort((a, b) => b.expenseDate.toMillis() - a.expenseDate.toMillis());
+      result.sort((a, b) => {
+        const tA = (a.expenseDate || a.createdAt)?.toMillis() || 0;
+        const tB = (b.expenseDate || b.createdAt)?.toMillis() || 0;
+        return tB - tA;
+      });
       break;
     case 'oldest':
-      result.sort((a, b) => a.expenseDate.toMillis() - b.expenseDate.toMillis());
+      result.sort((a, b) => {
+        const tA = (a.expenseDate || a.createdAt)?.toMillis() || 0;
+        const tB = (b.expenseDate || b.createdAt)?.toMillis() || 0;
+        return tA - tB;
+      });
       break;
     case 'highest':
       result.sort((a, b) => b.amount - a.amount);
