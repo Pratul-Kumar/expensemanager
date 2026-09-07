@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { LogOut, Info, ChevronRight, Bell, Tag, Trash2, Plus } from 'lucide-react';
+import { LogOut, Info, ChevronRight, Bell, Tag, Trash2, Plus, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -17,7 +17,7 @@ export default function SettingsPage() {
   const { user, userProfile, logout } = useAuth();
   const { addToast } = useAppContext();
   const router = useRouter();
-  const { settings, loading: settingsLoading, saveReminder } = useUserSettings();
+  const { settings, loading: settingsLoading, saveReminder, saveEmailPreferences } = useUserSettings();
   const { tags } = useTags();
 
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -27,6 +27,11 @@ export default function SettingsPage() {
   const [reminderEnabled, setReminderEnabled] = useState<boolean | null>(null);
   const [reminderTime, setReminderTime] = useState<string | null>(null);
   const [savingReminder, setSavingReminder] = useState(false);
+
+  // Email state
+  const [welcomeEmailPrefs, setWelcomeEmailPrefs] = useState<boolean | null>(null);
+  const [importantPrefs, setImportantPrefs] = useState<boolean | null>(null);
+  const [savingEmails, setSavingEmails] = useState(false);
 
   // Tag state
   const [newTagName, setNewTagName] = useState('');
@@ -54,6 +59,27 @@ export default function SettingsPage() {
       addToast('Failed to save settings', 'error');
     } finally {
       setSavingReminder(false);
+    }
+  };
+
+  const currentWelcomeEmail = welcomeEmailPrefs ?? settings?.emailPreferences?.welcomeEmail ?? true;
+  const currentImportantPrefs = importantPrefs ?? settings?.emailPreferences?.importantNotifications ?? true;
+  const hasEmailChanges = welcomeEmailPrefs !== null || importantPrefs !== null;
+
+  const handleSaveEmails = async () => {
+    setSavingEmails(true);
+    try {
+      await saveEmailPreferences({
+        welcomeEmail: currentWelcomeEmail,
+        importantNotifications: currentImportantPrefs,
+      });
+      addToast('Email preferences saved');
+      setWelcomeEmailPrefs(null);
+      setImportantPrefs(null);
+    } catch {
+      addToast('Failed to save email settings', 'error');
+    } finally {
+      setSavingEmails(false);
     }
   };
 
@@ -188,6 +214,68 @@ export default function SettingsPage() {
                   className="w-full"
                 >
                   Save Reminder Settings
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Email Notifications section */}
+      <section>
+        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Email Notifications</h2>
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-4">
+          {settingsLoading ? (
+            <div className="animate-pulse space-y-3">
+              <div className="h-5 bg-gray-200 rounded w-1/3"></div>
+              <div className="h-11 bg-gray-200 rounded w-full"></div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Mail size={18} className="text-indigo-500" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">Welcome email</p>
+                    <p className="text-xs text-gray-400">Sent on first login (one-time)</p>
+                  </div>
+                </div>
+                <div className="flex items-center h-6">
+                  <input
+                    type="checkbox"
+                    checked={currentWelcomeEmail}
+                    disabled
+                    className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-[18px]" /> {/* Spacer for alignment */}
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">Important account notifications</p>
+                    <p className="text-xs text-gray-400">Security and critical updates</p>
+                  </div>
+                </div>
+                <div className="flex items-center h-6">
+                  <input
+                    type="checkbox"
+                    checked={currentImportantPrefs}
+                    onChange={(e) => setImportantPrefs(e.target.checked)}
+                    className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {hasEmailChanges && (
+                <Button
+                  onClick={handleSaveEmails}
+                  loading={savingEmails}
+                  size="sm"
+                  className="w-full"
+                >
+                  Save Email Preferences
                 </Button>
               )}
             </>

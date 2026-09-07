@@ -13,6 +13,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { UserProfile } from '@/types';
+import { getUserSettings, markWelcomeEmailSent } from '@/lib/firestore/settings';
 
 interface AuthContextType {
   user: User | null;
@@ -49,7 +50,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    // Check if it's their first time and send welcome email
+    if (user && user.email) {
+      try {
+        const settings = await getUserSettings(user.uid);
+        if (!settings?.welcomeEmailSent) {
+          // Send welcome email via API route
+          await fetch('/api/email/welcome', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: user.displayName || 'There',
+              email: user.email,
+            }),
+          });
+          // Mark as sent
+          await markWelcomeEmailSent(user.uid);
+        }
+      } catch (err) {
+        console.error('Failed to send welcome email:', err);
+      }
+    }
   };
 
   const logout = async () => {

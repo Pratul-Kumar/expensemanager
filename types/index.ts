@@ -125,8 +125,15 @@ export interface ReminderSettings {
   minute: number; // 0-59
 }
 
+export interface EmailPreferences {
+  welcomeEmail: boolean;
+  importantNotifications: boolean;
+}
+
 export interface UserSettings {
   userId: string;
   dailyReminder: ReminderSettings;
+  emailPreferences?: EmailPreferences;
+  welcomeEmailSent?: boolean;
   updatedAt: Timestamp;
 }

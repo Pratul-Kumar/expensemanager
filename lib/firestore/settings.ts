@@ -29,3 +29,30 @@ export async function saveReminderSettings(
     { merge: true }
   );
 }
+
+export async function saveEmailPreferences(
+  userId: string,
+  prefs: { welcomeEmail: boolean; importantNotifications: boolean }
+): Promise<void> {
+  await setDoc(
+    doc(db, COLLECTION, userId),
+    {
+      userId,
+      emailPreferences: prefs,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+export async function markWelcomeEmailSent(userId: string): Promise<void> {
+  await setDoc(
+    doc(db, COLLECTION, userId),
+    {
+      userId,
+      welcomeEmailSent: true,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}

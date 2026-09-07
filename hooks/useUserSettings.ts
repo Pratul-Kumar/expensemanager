@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from './useAuth';
-import { getUserSettings, saveReminderSettings } from '@/lib/firestore/settings';
-import { ReminderSettings, UserSettings } from '@/types';
+import { getUserSettings, saveReminderSettings, saveEmailPreferences as saveEmailPrefsToFirestore } from '@/lib/firestore/settings';
+import { ReminderSettings, UserSettings, EmailPreferences } from '@/types';
 
 export function useUserSettings() {
   const { user } = useAuth();
@@ -47,5 +47,18 @@ export function useUserSettings() {
     [user]
   );
 
-  return { settings, loading, saveReminder };
+  const saveEmailPreferences = useCallback(
+    async (prefs: EmailPreferences) => {
+      if (!user) return;
+      await saveEmailPrefsToFirestore(user.uid, prefs);
+      setSettings((prev) => ({
+        ...prev,
+        userId: user.uid,
+        emailPreferences: prefs,
+      } as UserSettings));
+    },
+    [user]
+  );
+
+  return { settings, loading, saveReminder, saveEmailPreferences };
 }
