@@ -3,7 +3,7 @@
     "rules": "firestore.rules"
   },
   "hosting": {
-    "site": "notesexpense",
+    "site": "rakhlo",
     "public": "out",
     "ignore": [
       "firebase.json",
