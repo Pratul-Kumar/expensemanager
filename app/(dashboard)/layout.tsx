@@ -29,6 +29,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { settings } = useUserSettings();
   useDailyReminder(settings);
 
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/login');
+    }
+  }, [loading, user, router]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -39,12 +45,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
     );
   }
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/login');
-    }
-  }, [loading, user, router]);
 
   if (!user) {
     return null;

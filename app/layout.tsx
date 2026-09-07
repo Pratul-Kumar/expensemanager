@@ -10,13 +10,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Notely',
-  description: 'Your personal productivity space for notes, reminders, and daily expense tracking.',
+  title: 'RakhLo',
+  description: 'Your space to track expenses, notes, and budgets.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Notely',
+    title: 'RakhLo',
   },
   icons: {
     icon: '/icons/icon-192x192.png',

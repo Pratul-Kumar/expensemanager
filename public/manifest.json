@@ -1,6 +1,6 @@
 {
-  "name": "Notely",
-  "short_name": "Notely",
+  "name": "RakhLo",
+  "short_name": "RakhLo",
   "description": "Your personal notes, reminders, and expense tracker",
   "start_url": "/",
   "display": "standalone",
