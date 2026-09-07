@@ -1,8 +1,17 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-// Only initialize if the key is present
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const userEmail = process.env.GMAIL_EMAIL;
+const appPassword = process.env.GMAIL_APP_PASSWORD;
+
+// Only create transporter if credentials exist
+const transporter = (userEmail && appPassword) ? nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: userEmail,
+    pass: appPassword,
+  },
+}) : null;
 
 export async function POST(request: Request) {
   try {
@@ -12,13 +21,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Name and email are required' }, { status: 400 });
     }
 
-    if (!resend) {
-      console.log('RESEND_API_KEY is missing. Mocking welcome email to:', email);
+    if (!transporter) {
+      console.log('GMAIL_EMAIL or GMAIL_APP_PASSWORD missing. Mocking email to:', email);
       return NextResponse.json({ success: true, mocked: true });
     }
 
     const firstName = name.split(' ')[0];
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'RakhLo <onboarding@resend.dev>';
+    const fromString = `"Team RakhLo" <${userEmail}>`;
 
     const htmlContent = `
       <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden;">
@@ -39,7 +48,7 @@ export async function POST(request: Request) {
           </p>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://rakhlo-app.com" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; display: inline-block;">
+            <a href="https://rakhlo.vercel.app" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; display: inline-block;">
               Open RakhLo
             </a>
           </div>
@@ -68,17 +77,17 @@ export async function POST(request: Request) {
       </div>
     `;
 
-    const data = await resend.emails.send({
-      from: fromEmail,
+    const info = await transporter.sendMail({
+      from: fromString,
       to: email,
       subject: 'Welcome to RakhLo! 👋',
       html: htmlContent,
     });
 
-    console.log('Successfully sent welcome email to', email);
-    return NextResponse.json({ success: true, data });
+    console.log('Successfully sent welcome email via Gmail to', email);
+    return NextResponse.json({ success: true, messageId: info.messageId });
   } catch (error) {
-    console.error('Error sending welcome email:', error);
+    console.error('Error sending welcome email via Nodemailer:', error);
     return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
   }
 }
