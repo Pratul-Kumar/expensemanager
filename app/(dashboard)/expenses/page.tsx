@@ -6,6 +6,7 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { useRecurringPayments } from '@/hooks/useRecurringPayments';
 import { useBudget } from '@/hooks/useBudget';
 import { useExpenseFilters } from '@/hooks/useExpenseFilters';
+import { useTags } from '@/hooks/useTags';
 import { useAppContext } from '../layout';
 import { MonthlyView } from '@/components/expenses/MonthlyView';
 import { ExpenseFilters } from '@/components/expenses/ExpenseFilters';
@@ -24,6 +25,7 @@ export default function ExpensesPage() {
   const { expenses, loading: expensesLoading } = useExpenses();
   const { recurring, loading: recurringLoading } = useRecurringPayments();
   const { addToast } = useAppContext();
+  const { tags } = useTags();
 
   const [addOpen, setAddOpen] = useState(false);
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
@@ -131,6 +133,7 @@ export default function ExpensesPage() {
         onFilterChange={setFilter}
         onReset={resetFilters}
         hasActiveFilters={hasActiveFilters}
+        tags={tags}
       />
 
       {/* Monthly view */}

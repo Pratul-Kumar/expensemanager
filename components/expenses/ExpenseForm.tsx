@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Expense, ExpenseFormData } from '@/types';
 import { createExpense, updateExpense } from '@/lib/firestore/expenses';
+import { createTag } from '@/lib/firestore/tags';
+import { useTags } from '@/hooks/useTags';
 import { createRecurringPayment } from '@/lib/firestore/recurring';
 import { useAuth } from '@/hooks/useAuth';
 import { toDateInputValue } from '@/lib/utils';
@@ -18,8 +20,11 @@ interface ExpenseFormProps {
 
 export function ExpenseForm({ expense, onClose, onSuccess, onError }: ExpenseFormProps) {
   const { user } = useAuth();
+  const { tags } = useTags();
   const [amount, setAmount] = useState(expense ? String(expense.amount) : '');
   const [note, setNote] = useState(expense?.note ?? '');
+  const [tag, setTag] = useState(expense?.tag ?? '');
+  const [newTagName, setNewTagName] = useState('');
   const [dateStr, setDateStr] = useState(() => {
     if (expense?.expenseDate) {
       return toDateInputValue(expense.expenseDate.toDate());
@@ -70,7 +75,7 @@ export function ExpenseForm({ expense, onClose, onSuccess, onError }: ExpenseFor
 
       if (expense) {
         // Updating existing expense (recurring settings cannot be changed here)
-        const data: ExpenseFormData = { amount, note, expenseDate };
+        const data: ExpenseFormData = { amount, note, tag, expenseDate };
         await updateExpense(expense.id, data);
         onSuccess('Expense updated');
       } else {
@@ -78,7 +83,7 @@ export function ExpenseForm({ expense, onClose, onSuccess, onError }: ExpenseFor
           await createRecurringPayment(user.uid, { amount, note, expenseDate }, { frequency, reminderDaysBefore: reminders });
           onSuccess('Recurring expense added');
         } else {
-          const data: ExpenseFormData = { amount, note, expenseDate };
+          const data: ExpenseFormData = { amount, note, tag, expenseDate };
           await createExpense(user.uid, data);
           onSuccess('Expense added');
         }
@@ -126,6 +131,50 @@ export function ExpenseForm({ expense, onClose, onSuccess, onError }: ExpenseFor
         error={errors.date}
         required
       />
+
+      {/* Tag selector */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-medium text-gray-700">Tag (optional)</label>
+        <div className="flex items-center gap-2">
+          <select
+            value={tag}
+            onChange={(e) => setTag(e.target.value)}
+            className="flex-1 h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+          >
+            <option value="">No tag</option>
+            {tags.map((t) => (
+              <option key={t.id} value={t.name}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+        {/* Inline new tag creation */}
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="New tag name"
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            className="flex-1 h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+          />
+          <button
+            type="button"
+            onClick={async () => {
+              if (!user || !newTagName.trim()) return;
+              try {
+                await createTag(user.uid, newTagName.trim());
+                setTag(newTagName.trim());
+                setNewTagName('');
+              } catch (err) {
+                console.error('Failed to create tag:', err);
+              }
+            }}
+            disabled={!newTagName.trim()}
+            className="h-9 px-3 text-xs font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            + Add
+          </button>
+        </div>
+      </div>
 
       {/* Recurring toggle — only shown when creating a new expense */}
       {!expense && (

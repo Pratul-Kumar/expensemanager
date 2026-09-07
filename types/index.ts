@@ -23,6 +23,7 @@ export interface Expense {
   userId: string;
   amount: number;
   note: string;
+  tag?: string; // optional label (e.g. "Rahul", "Goa Trip")
   expenseDate: Timestamp; // when money was actually paid
   createdAt: Timestamp; // system timestamp
   updatedAt: Timestamp; // system timestamp
@@ -33,6 +34,7 @@ export interface Expense {
 export interface ExpenseFormData {
   amount: string;
   note: string;
+  tag?: string; // optional label
   expenseDate: Date; // user selected date
   recurring?: {
     enabled: boolean;
@@ -69,6 +71,7 @@ export type ReminderStatus = 'upcoming' | 'today' | 'overdue';
 export interface ExpenseFilters {
   search: string;
   type: 'all' | 'normal' | 'recurring';
+  tag: string; // '' = all tags
   dateRange: 'this-month' | 'last-month' | 'this-year' | 'custom';
   customFrom: string; // yyyy-mm-dd or ''
   customTo: string;   // yyyy-mm-dd or ''
@@ -103,4 +106,27 @@ export interface BudgetCalculation {
   percentageAllocated: number;// (allocated / budget) * 100
   status: BudgetStatus;
   overBudgetAmount: number;   // max(0, allocated - budget)
+}
+
+// ── Tags ──
+
+export interface Tag {
+  id: string;
+  userId: string;
+  name: string;
+  createdAt: Timestamp;
+}
+
+// ── User Settings (Daily Reminder) ──
+
+export interface ReminderSettings {
+  enabled: boolean;
+  hour: number;   // 0-23
+  minute: number; // 0-59
+}
+
+export interface UserSettings {
+  userId: string;
+  dailyReminder: ReminderSettings;
+  updatedAt: Timestamp;
 }

@@ -40,9 +40,16 @@ export function ExpenseItem({ expense, onToast, showDate = false }: ExpenseItemP
           <p className="text-sm font-medium text-gray-800 truncate">
             {expense.note || 'No description'}
           </p>
-          {showDate && expense.createdAt && (
-            <p className="text-xs text-gray-400 mt-0.5">{formatDate(expense.createdAt)}</p>
-          )}
+          <div className="flex items-center gap-1.5 mt-0.5">
+            {showDate && expense.createdAt && (
+              <span className="text-xs text-gray-400">{formatDate(expense.createdAt)}</span>
+            )}
+            {expense.tag && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-600 text-[10px] font-medium">
+                {expense.tag}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-3 ml-3 shrink-0">

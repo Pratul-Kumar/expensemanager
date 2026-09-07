@@ -1,9 +1,11 @@
 'use client';
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
+import { useUserSettings } from '@/hooks/useUserSettings';
+import { useDailyReminder } from '@/hooks/useDailyReminder';
 import { ToastContainer } from '@/components/ui/Toast';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -24,6 +26,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, loading } = useAuth();
   const router = useRouter();
   const { toasts, addToast, removeToast } = useToast();
+  const { settings } = useUserSettings();
+  useDailyReminder(settings);
 
   if (loading) {
     return (
@@ -36,8 +40,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/login');
+    }
+  }, [loading, user, router]);
+
   if (!user) {
-    router.replace('/login');
     return null;
   }
 

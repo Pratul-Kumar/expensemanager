@@ -204,6 +204,7 @@ export function getDefaultFilters(): ExpenseFilters {
   return {
     search: '',
     type: 'all',
+    tag: '',
     dateRange: 'this-month',
     customFrom: '',
     customTo: '',
@@ -231,6 +232,11 @@ export function filterExpenses(
     result = result.filter((e) => !e.recurringPaymentId);
   } else if (filters.type === 'recurring') {
     result = result.filter((e) => !!e.recurringPaymentId);
+  }
+
+  // Tag filter
+  if (filters.tag) {
+    result = result.filter((e) => e.tag === filters.tag);
   }
 
   // Date filter

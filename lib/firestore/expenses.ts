@@ -19,6 +19,7 @@ export async function createExpense(userId: string, data: ExpenseFormData): Prom
     userId,
     amount: parseFloat(data.amount),
     note: data.note.trim(),
+    tag: data.tag?.trim() || '',
     expenseDate: Timestamp.fromDate(data.expenseDate), // user selected date
     // system timestamps
     createdAt: serverTimestamp(),
@@ -31,6 +32,7 @@ export async function updateExpense(expenseId: string, data: ExpenseFormData): P
   await updateDoc(doc(db, EXPENSES_COLLECTION, expenseId), {
     amount: parseFloat(data.amount),
     note: data.note.trim(),
+    tag: data.tag?.trim() || '',
     expenseDate: Timestamp.fromDate(data.expenseDate),
     updatedAt: serverTimestamp(),
     // do not modify recurringPaymentId on update

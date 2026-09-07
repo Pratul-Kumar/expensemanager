@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Search, Calendar, SlidersHorizontal, X } from 'lucide-react';
-import { ExpenseFilters as FilterTypes } from '@/types';
+import { ExpenseFilters as FilterTypes, Tag } from '@/types';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -12,6 +12,7 @@ interface ExpenseFiltersProps {
   onFilterChange: <K extends keyof FilterTypes>(key: K, value: FilterTypes[K]) => void;
   onReset: () => void;
   hasActiveFilters: boolean;
+  tags: Tag[];
 }
 
 export function ExpenseFilters({
@@ -19,6 +20,7 @@ export function ExpenseFilters({
   onFilterChange,
   onReset,
   hasActiveFilters,
+  tags,
 }: ExpenseFiltersProps) {
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [showAdvancedModal, setShowAdvancedModal] = useState(false);
@@ -158,6 +160,34 @@ export function ExpenseFilters({
           </button>
         ))}
       </div>
+
+      {/* Tag Filter Chips */}
+      {tags.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide mr-1">Tag:</span>
+          <button
+            onClick={() => onFilterChange('tag', '')}
+            className={`
+              h-7 px-3 rounded-full text-xs font-medium transition-colors
+              ${!filters.tag ? 'bg-indigo-500 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
+            `}
+          >
+            All
+          </button>
+          {tags.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => onFilterChange('tag', t.name)}
+              className={`
+                h-7 px-3 rounded-full text-xs font-medium transition-colors
+                ${filters.tag === t.name ? 'bg-indigo-500 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
+              `}
+            >
+              {t.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Advanced Modal */}
       <Modal

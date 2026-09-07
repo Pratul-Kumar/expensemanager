@@ -46,6 +46,7 @@ export function useExpenseFilters(expenses: Expense[], currentMonth: Date) {
     return (
       filters.search !== defaults.search ||
       filters.type !== defaults.type ||
+      filters.tag !== defaults.tag ||
       filters.dateRange !== defaults.dateRange ||
       filters.minAmount !== defaults.minAmount ||
       filters.maxAmount !== defaults.maxAmount ||
